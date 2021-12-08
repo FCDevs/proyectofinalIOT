@@ -1,20 +1,30 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <MQTT.h>
+#include <WiFiClient.h>
+#include <WebServer.h>
+#include "webpage.h"
 
 const char ssid[] = "NxGroup";
 const char pass[] = "cisneros530";
+const char* deviceName="ESP32_THING";
 String IDS = "NO IDENTIFICADO";
 String estado = "CORRECTO";
 
+WebServer server(80);
+//WiFiClient client;
 WiFiClient net;
 MQTTClient client;
+
 
 long duration;
 float distanceCm;
 #define SOUND_SPEED 0.034
 unsigned long lastTime = 0;
 unsigned long timerDelay = 10000;
+
+// prototipos funciones servidor
+void handleRoot();
 
 void connect() {
   Serial.print("checking wifi...");
@@ -73,11 +83,15 @@ void setup() {
   pinMode(26,OUTPUT); // LED2
   pinMode(13,INPUT);  // ECHO
   pinMode(12,OUTPUT); // pulse
-
+  WiFi.hostname(deviceName);
+  WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, pass);
   client.begin("192.168.0.125", 1883, net);
   client.onMessage(messageReceived);
   connect();
+  server.on("/", handleRoot);
+  server.begin();
+  Serial.println("HTTP server started");
 }
 
 void loop() {
@@ -87,9 +101,18 @@ void loop() {
     connect();                // si se desconecta, intento conectar
   }
 
+
   if ((millis() - lastTime) > timerDelay) {
     lastTime = millis();
     String mensaje ="{\"temperature\":"+String(medicion())+",\"ID_SENSOR\":\""+String(IDS)+"\",\"state\":\""+String(estado)+"\"}";
     client.publish("temperatura", mensaje);
-  }  
+  }
+
+  server.handleClient(); 
+  vTaskDelay(10 / portTICK_RATE_MS);       
+}
+
+void handleRoot()
+{
+ server.send(200, "text/html", webpageCode);
 }

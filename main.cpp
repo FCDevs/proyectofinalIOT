@@ -2,8 +2,8 @@
 #include <WiFi.h> //<WiFi101.h>
 #include <MQTT.h>
 
-const char ssid[] = "ariel";
-const char pass[] = "pollosss";
+const char ssid[] = "NxGroup";
+const char pass[] = "cisneros530";
 
 WiFiClient net;
 MQTTClient client;
@@ -37,27 +37,19 @@ void connect() {
 
   Serial.println("\nconnected!");
 
-  client.subscribe("brillo");
-  client.subscribe("led1");
-  client.subscribe("led2");
+  client.subscribe("led");
+
   // client.unsubscribe("/hello");
 }
 
 void messageReceived(String &topic, String &payload) {
   Serial.println("incoming: " + topic + " - " + payload);
   // set the brightness of pin 2:
-  
-  if (topic=="brillo") {
-      ledcWrite(ledChannel, payload.toInt());
-  }  
-  if (topic=="led1") {
+  if (topic=="led") {
     if (payload=="on") digitalWrite(26, HIGH);
     if (payload=="off") digitalWrite(26, LOW);
   }
-  if (topic=="led2") {
-    if (payload=="on") digitalWrite(27, HIGH);
-    if (payload=="off") digitalWrite(27, LOW);
-  }
+
   // Note: Do not use the client in the callback to publish, subscribe or
   // unsubscribe as it may cause deadlocks when other things arrive while
   // sending and receiving acknowledgments. Instead, change a global variable,
@@ -75,7 +67,6 @@ float medicion(){
     duration = pulseIn(13, HIGH);
     distanceCm = duration * SOUND_SPEED/2;
     return distanceCm;
-
 }
 
 void setup() {
@@ -83,7 +74,7 @@ void setup() {
   Serial.begin(115200);
   pinMode(25,OUTPUT); // LED1
   pinMode(26,OUTPUT); // LED2
-  pinMode(27,OUTPUT); // LED3
+
   pinMode(34,INPUT);  //pulsadores
   pinMode(35,INPUT);  //pulsadores
   pinMode(13,INPUT);  // ECHO
@@ -99,7 +90,7 @@ void setup() {
   // by Arduino. You need to set the IP address directly.
   //
   // MQTT brokers usually use port 8883 for secure connections.
-  client.begin("192.168.0.132", 1883, net);
+  client.begin("192.168.0.125", 1883, net);
   client.onMessage(messageReceived);
 
   connect();
@@ -116,7 +107,8 @@ void loop() {
 
   if ((millis() - lastTime) > timerDelay) {
     lastTime = millis();
-    client.publish("distancia", String(medicion()));
+    String mensaje ="{\"temperature\":"+String(medicion())+",\"ID_SENSOR\":2,\"state\":5}";
+    client.publish("temperatura", mensaje);
   }
  
   

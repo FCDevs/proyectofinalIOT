@@ -72,17 +72,15 @@ String webpageCode = R"***(
             padding-right: 20px;
         }
 
-        input{
-            margin-left: 15PX;
-            margin-top: 10px;
-            width: 70px;
-            height: 25px;
+        h5{
+            text-align: center;
+            font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         }
 
     </style>
 
 </head>
-<body>
+<body onload="cargarnombre()">
     <div class="top">
         <div class="conttop">
             <a href="http://www.frn.utn.edu.ar/"><img src="https://i.ibb.co/6RTCp2m/LOGO2-blanco.png" alt=""></a>
@@ -93,15 +91,81 @@ String webpageCode = R"***(
         <h3>Proyecto Grupo 3</h3>
         <hr>
         <h4>Id del dispositivo:</h4>
-        <h2>NOMBRE</h2>
+        <h2><span id="name">NOMBRE</span></h2>
         <br>
         <h4>Valor de la temperatura actual:</h4>
-        <h2>VALOR</h2>
+        <h2><span id="Tempe">0</span></h2>
         <br>
-        <h4>Encender LED</h4>
-        <input type="button" value="ON">
-        <br><hr>
+        <h4>Estado de la temperatura:</h4>
+        <h2><span id="estado">ESTADO</span></h2>
+        <hr>
+        <br>
+        <h5>ESP EN MODO STATION</h5>
     </main>
 </body>
+
+<script>
+function cargarnombre() {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      document.getElementById("name").innerHTML = this.responseText;
+    }
+  };
+  xhttp.open("GET", "/readname", true);
+  xhttp.send();
+}
+</script>
+
+<script>
+var tempeShow;
+setInterval(function ( )
+{
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function()
+    {
+    if (this.readyState == 4 && this.status == 200)
+    {
+        var x = (new Date()).getTime();
+        x= x- 3*3600*1000; // para Argentina
+        y = parseFloat(this.responseText);
+        tempeShow=y;
+        contador=contador+1;       
+        if((contador==frecuencia) && (continuar==1))
+        {    
+            if(chartT.series[0].data.length > 100)
+            {
+              chartT.series[0].addPoint([x, y], true, true, true);
+            }
+            else
+            {
+              chartT.series[0].addPoint([x, y], true, false, true);
+            }  
+            contador=0;
+        }
+    }
+    };
+    xhttp.open("GET", "/readPOT", true);
+    xhttp.send();
+    document.getElementById("Tempe").innerHTML = tempeShow;
+  
+    
+
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function()
+    {
+        if (this.readyState == 4 && this.status == 200)
+        {
+        document.getElementById("estado").innerHTML = this.responseText;
+        }
+    };
+    xhttp.open("GET", "/readestado", true);
+    xhttp.send();
+
+
+}, 1000 );
+</script>
+
+
 </html>
 )***";

@@ -8,7 +8,8 @@
 const char ssid[] = "NxGroup";
 const char pass[] = "cisneros530";
 const char* deviceName="ESP32_THING";
-String IDS = "NO IDENTIFICADO";
+
+String IDS = "ESP 1";
 String estado = "CORRECTO";
 
 WebServer server(80);
@@ -21,11 +22,13 @@ long duration;
 float distanceCm;
 #define SOUND_SPEED 0.034
 unsigned long lastTime = 0;
-unsigned long timerDelay = 10000;
+unsigned long timerDelay = 1000;
 
 // prototipos funciones servidor
 void handleRoot();
-
+void handlePOT();
+void handlename();
+void handleestado();
 void connect() {
   Serial.print("checking wifi...");
   while (WiFi.status() != WL_CONNECTED) {
@@ -86,12 +89,17 @@ void setup() {
   WiFi.hostname(deviceName);
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, pass);
-  client.begin("192.168.0.125", 1883, net);
+  client.begin("192.168.0.113", 1883, net);
   client.onMessage(messageReceived);
   connect();
   server.on("/", handleRoot);
+  server.on("/readPOT", handlePOT);
+  server.on("/readname", handlename);
+  server.on("/readestado", handleestado);
   server.begin();
   Serial.println("HTTP server started");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
 }
 
 void loop() {
@@ -104,7 +112,7 @@ void loop() {
 
   if ((millis() - lastTime) > timerDelay) {
     lastTime = millis();
-    String mensaje ="{\"temperature\":"+String(medicion())+",\"ID_SENSOR\":\""+String(IDS)+"\",\"state\":\""+String(estado)+"\"}";
+    String mensaje ="{\"temperature\":"+String(medicion())+",\"id_sensor\":\""+String(IDS)+"\",\"state\":\""+String(estado)+"\"}";
     client.publish("temperatura", mensaje);
   }
 
@@ -115,4 +123,22 @@ void loop() {
 void handleRoot()
 {
  server.send(200, "text/html", webpageCode);
+}
+
+void handlePOT()
+{
+ String POTval= String(medicion());   
+ server.send(200, "text/plane", POTval);
+}
+
+void handlename()
+{
+ String name= String(IDS);   
+ server.send(200, "text/plane", name);
+}
+
+void handleestado()
+{
+ String estd= String(estado);   
+ server.send(200, "text/plane", estd);
 }

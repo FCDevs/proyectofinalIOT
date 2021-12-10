@@ -1,0 +1,549 @@
+[
+    {
+        "id": "0d1adfc87c6dac62",
+        "type": "tab",
+        "label": "Flow 2",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "b732f43d9414d38f",
+        "type": "mqtt in",
+        "z": "0d1adfc87c6dac62",
+        "name": "",
+        "topic": "temperatura",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "0975254485f0bb65",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "x": 370,
+        "y": 420,
+        "wires": [
+            [
+                "1903373d3ee8fad3"
+            ]
+        ]
+    },
+    {
+        "id": "29ed9a7ea5d110b8",
+        "type": "aedes broker",
+        "z": "0d1adfc87c6dac62",
+        "name": "",
+        "mqtt_port": 1883,
+        "mqtt_ws_bind": "port",
+        "mqtt_ws_port": "",
+        "mqtt_ws_path": "",
+        "cert": "",
+        "key": "",
+        "certname": "",
+        "keyname": "",
+        "dburl": "",
+        "usetls": false,
+        "x": 370,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a9ba4b8d03e4dfaa",
+        "type": "mqtt out",
+        "z": "0d1adfc87c6dac62",
+        "name": "",
+        "topic": "temperatura",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "0975254485f0bb65",
+        "x": 630,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "2e91d5b23c0d3659",
+        "type": "inject",
+        "z": "0d1adfc87c6dac62",
+        "name": "Inject de Prueba",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"temperature\":87,\"ID_SENSOR\":2,\"state\":5}",
+        "payloadType": "str",
+        "x": 380,
+        "y": 200,
+        "wires": [
+            [
+                "a9ba4b8d03e4dfaa"
+            ]
+        ]
+    },
+    {
+        "id": "08b1db4dc7c9f193",
+        "type": "mysql",
+        "z": "0d1adfc87c6dac62",
+        "mydb": "10838c4d7a217ed2",
+        "name": "iotuser1",
+        "x": 760,
+        "y": 680,
+        "wires": [
+            [
+                "5e329b753a88c4bc"
+            ]
+        ]
+    },
+    {
+        "id": "9e85a7c276435ea0",
+        "type": "inject",
+        "z": "0d1adfc87c6dac62",
+        "name": "",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "temp",
+        "payload": "500",
+        "payloadType": "str",
+        "x": 360,
+        "y": 800,
+        "wires": [
+            [
+                "98d651e8f47c52c0"
+            ]
+        ]
+    },
+    {
+        "id": "98d651e8f47c52c0",
+        "type": "template",
+        "z": "0d1adfc87c6dac62",
+        "name": "",
+        "field": "topic",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "INSERT INTO mediciones (medicion, valor) VALUES ('{{topic}}',{{payload}});",
+        "output": "str",
+        "x": 540,
+        "y": 800,
+        "wires": [
+            [
+                "08b1db4dc7c9f193"
+            ]
+        ]
+    },
+    {
+        "id": "60fd6e4b25319c37",
+        "type": "inject",
+        "z": "0d1adfc87c6dac62",
+        "name": "Request mysql",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "SELECT * FROM IOT.datos;",
+        "x": 380,
+        "y": 680,
+        "wires": [
+            [
+                "08b1db4dc7c9f193"
+            ]
+        ]
+    },
+    {
+        "id": "3a7213c0613107db",
+        "type": "inject",
+        "z": "0d1adfc87c6dac62",
+        "name": "Ingreso dato",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "INSERT INTO datos (temperature,id_sensor,state) VALUES (78.9,\"tanque 2\",\"alto\");",
+        "x": 370,
+        "y": 740,
+        "wires": [
+            [
+                "08b1db4dc7c9f193"
+            ]
+        ]
+    },
+    {
+        "id": "1903373d3ee8fad3",
+        "type": "json",
+        "z": "0d1adfc87c6dac62",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 550,
+        "y": 420,
+        "wires": [
+            [
+                "b7339e2945ea4bbc",
+                "c56c46b90c20043d",
+                "3a926a01ce5b068d",
+                "10b5f9e93a462adf",
+                "429bc41135f5f5c5"
+            ]
+        ]
+    },
+    {
+        "id": "60208e37786cb718",
+        "type": "ui_gauge",
+        "z": "0d1adfc87c6dac62",
+        "name": "",
+        "group": "44790463953883e6",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "gtype": "donut",
+        "title": "Temperatura:",
+        "label": "°C",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "x": 970,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "b7339e2945ea4bbc",
+        "type": "function",
+        "z": "0d1adfc87c6dac62",
+        "name": "",
+        "func": "//p=JSON.parse(msg.payload);\np=msg.payload;\nnode.log(typeof p);\nmsg.payload=p.temperature;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 360,
+        "wires": [
+            [
+                "60208e37786cb718"
+            ]
+        ]
+    },
+    {
+        "id": "c56c46b90c20043d",
+        "type": "function",
+        "z": "0d1adfc87c6dac62",
+        "name": "",
+        "func": "//p=JSON.parse(msg.payload);\np=msg.payload;\nnode.log(typeof p);\nmsg.payload=p.id_sensor;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 420,
+        "wires": [
+            [
+                "b83616c16a321c8a"
+            ]
+        ]
+    },
+    {
+        "id": "3a926a01ce5b068d",
+        "type": "function",
+        "z": "0d1adfc87c6dac62",
+        "name": "",
+        "func": "//p=JSON.parse(msg.payload);\np=msg.payload;\nnode.log(typeof p);\nmsg.payload=p.state;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 480,
+        "wires": [
+            [
+                "4c4d5a8f16abb1bd"
+            ]
+        ]
+    },
+    {
+        "id": "b83616c16a321c8a",
+        "type": "ui_text",
+        "z": "0d1adfc87c6dac62",
+        "group": "44790463953883e6",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Sensor ID:",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "x": 970,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "4c4d5a8f16abb1bd",
+        "type": "ui_text",
+        "z": "0d1adfc87c6dac62",
+        "group": "44790463953883e6",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Estado de temperatura: ",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "x": 1010,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "dbd6c92d1ccae2c5",
+        "type": "template",
+        "z": "0d1adfc87c6dac62",
+        "name": "",
+        "field": "topic",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "INSERT INTO datos (temperature,id_sensor,state) VALUES ({{temperature}},\"{{id_sensor}}\",\"{{state}}\");",
+        "output": "str",
+        "x": 740,
+        "y": 620,
+        "wires": [
+            [
+                "08b1db4dc7c9f193",
+                "5e329b753a88c4bc"
+            ]
+        ]
+    },
+    {
+        "id": "10b5f9e93a462adf",
+        "type": "function",
+        "z": "0d1adfc87c6dac62",
+        "name": "",
+        "func": "p=msg.payload;\nnode.log(typeof p);\nmsg.temperature=p.temperature;\nmsg.id_sensor=p.id_sensor;\nmsg.state=p.state;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 560,
+        "wires": [
+            [
+                "dbd6c92d1ccae2c5"
+            ]
+        ]
+    },
+    {
+        "id": "6a0756a0b8e73b4c",
+        "type": "mqtt out",
+        "z": "0d1adfc87c6dac62",
+        "name": "",
+        "topic": "led",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "e069b2ed5a80bbc1",
+        "x": 510,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "ff4a39c77526aa2d",
+        "type": "ui_switch",
+        "z": "0d1adfc87c6dac62",
+        "name": "",
+        "label": "LED",
+        "tooltip": "",
+        "group": "44790463953883e6",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "decouple": "false",
+        "topic": "topic",
+        "topicType": "msg",
+        "style": "",
+        "onvalue": "on",
+        "onvalueType": "str",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "off",
+        "offvalueType": "str",
+        "officon": "",
+        "offcolor": "",
+        "animate": false,
+        "x": 330,
+        "y": 140,
+        "wires": [
+            [
+                "6a0756a0b8e73b4c"
+            ]
+        ]
+    },
+    {
+        "id": "5e329b753a88c4bc",
+        "type": "debug",
+        "z": "0d1adfc87c6dac62",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 970,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "429bc41135f5f5c5",
+        "type": "debug",
+        "z": "0d1adfc87c6dac62",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 780,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "7670d23a51c505ce",
+        "type": "comment",
+        "z": "0d1adfc87c6dac62",
+        "name": "",
+        "info": "Pruebas de mysql",
+        "x": 340,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "0975254485f0bb65",
+        "type": "mqtt-broker",
+        "name": "Broker Local 113",
+        "broker": "127.0.0.1",
+        "port": "1883",
+        "clientid": "",
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "sessionExpiry": ""
+    },
+    {
+        "id": "10838c4d7a217ed2",
+        "type": "MySQLdatabase",
+        "name": "",
+        "host": "127.0.0.1",
+        "port": "3306",
+        "db": "IOT",
+        "tz": "",
+        "charset": "UTF8"
+    },
+    {
+        "id": "44790463953883e6",
+        "type": "ui_group",
+        "name": "Proyecto IOT",
+        "tab": "7e422b2d83e5ea01",
+        "order": 1,
+        "disp": true,
+        "width": "8",
+        "collapse": false
+    },
+    {
+        "id": "e069b2ed5a80bbc1",
+        "type": "mqtt-broker",
+        "name": "Broker Local",
+        "broker": "127.0.0.1",
+        "port": "1883",
+        "clientid": "",
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "sessionExpiry": ""
+    },
+    {
+        "id": "7e422b2d83e5ea01",
+        "type": "ui_tab",
+        "name": "Proyecto Final",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    }
+]

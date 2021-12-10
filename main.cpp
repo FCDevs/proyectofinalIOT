@@ -13,8 +13,8 @@ const char* ssid     = "ESP32DIPLO";
 const char* password = "123456789";
 int8_t ESTADOESP = 0;           //0 para modo accespoint - 3 para modo station
 int8_t carga=0;
-const char ssidsm[] = "NxGroup";
-const char pass[]= "cisneros530";
+//const char ssidsm[] = "NxGroup";
+//const char pass[]= "cisneros530";
 const char* deviceName="ESP32_THING";
 String IPSERVER = "123";
 String IDS = "ESP 1";
@@ -200,15 +200,13 @@ carga=1;
 
 void setupstationmode ()
 {
-  //WiFi.hostname(deviceName);
   WiFi.hostname(deviceName);
   WiFi.mode(WIFI_STA);
-
-  //const char *ssidsm = SSI.c_str(); //VER ESTOOOOOO
-  //const char *pass = PAS.c_str(); //VER ESTOOOOOO
-
+  const char *ssidsm = SSI.c_str(); 
+  const char *pass = PAS.c_str(); 
   WiFi.begin(ssidsm, pass);
-  client.begin("192.168.0.111", 1883, net);
+  const char *ipse = IPSERVER.c_str();
+  client.begin(ipse, 1883, net);
   client.onMessage(messageReceived);
   connect();
   server2.on("/", handleRoot);

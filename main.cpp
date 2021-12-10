@@ -7,6 +7,8 @@
 #include "webpage2.h"
 #include <string.h>
 #include <iostream>
+#include <ThingSpeak.h>
+
 #define LED 2
 
 #if CONFIG_FREERTOS_UNICORE
@@ -42,6 +44,7 @@ WiFiServer server(80);
 WebServer server2(80);
 WiFiClient net;
 
+void thingSpeak1(void *pvParameters);
 void blink (void *pvParameters);
 void checkcon (void *pvParameters);
 void extraccion ();
@@ -65,7 +68,7 @@ void setup() {
   pinMode(12,OUTPUT);   // pulse
   xTaskCreatePinnedToCore(blink, "blink", 1024, NULL, 1, NULL, ARDUINO_RUNING_CORE);
   xTaskCreatePinnedToCore(checkcon, "checkcon", 1024, NULL, 1, NULL, ARDUINO_RUNING_CORE);
-
+  //xTaskCreatePinnedToCore(thingSpeak1, "thingSpeak1", 4096, NULL, 0, NULL, 0);
 }
 
 void loop() {
@@ -380,10 +383,9 @@ void checkcon (void *pvParameters)   //CHECKEO CONEXION FREERTOS
   int contador = 0;
   while (1)
   {
-    vTaskDelay(T1000);
-    Serial.println(String(ESTADOESP));
     if (ESTADOESP == 3)
-    {      
+    { 
+      vTaskDelay(T1000);       
       contador++;
       if (contador >= 25)
       {
@@ -395,4 +397,33 @@ void checkcon (void *pvParameters)   //CHECKEO CONEXION FREERTOS
     
   }
   
+}
+
+void thingSpeak1(void *pvParameters) {
+  unsigned long  CHANNEL_ID= 1603918;
+  const char * API_KEY= "A1KAJ8H2ZD9CB4MA"; //api write
+  int contador=0; 
+   while (1)
+   {
+       
+
+     vTaskDelay (20*xDelay); //Ejecuta esta tarea cada 1000 milisegundos da un total de 20 seg
+     server2.stop();
+     ThingSpeak.begin(net);
+     contador++;
+     vTaskDelay (xDelay);
+     int x=ThingSpeak.writeField(CHANNEL_ID,1,contador,API_KEY);
+     vTaskDelay (xDelay);
+      if(x == 200){
+      Serial.println("Channel update successful.");
+      }
+      else{
+        Serial.println("Problem updating channel. HTTP error code " + String(x));
+      }  
+     server2.begin();
+     vTaskDelay (xDelay);
+     
+     
+        
+   }
 }

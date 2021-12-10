@@ -7,19 +7,28 @@
 #include "webpage2.h"
 #include <string.h>
 #include <iostream>
+#define LED 2
+
+#if CONFIG_FREERTOS_UNICORE
+#define ARDUINO_RUNING_CORE 0
+#else
+#define ARDUINO_RUNING_CORE 1
+#endif
 
 //VARIABLES GLOBALES-------------------
+const portTickType xDelay = 1000 / portTICK_RATE_MS;
+const portTickType T100 = 100 / portTICK_RATE_MS;
+const portTickType T1000 = 1000 / portTICK_RATE_MS;
+const portTickType T5000 = 5000 / portTICK_RATE_MS;
 const char* ssid     = "ESP32DIPLO";
 const char* password = "123456789";
-int8_t ESTADOESP = 0;           //0 para modo accespoint - 3 para modo station
-int8_t carga=0;
-//const char ssidsm[] = "NxGroup";
-//const char pass[]= "cisneros530";
-const char* deviceName="ESP32_THING";
+int8_t ESTADOESP = 0;                 //0 para modo accespoint - 3 para modo station
+int8_t carga=0;                       //falg para la carga del formulario
+const char* deviceName="proyectoIOT_Grupo3";
 String IPSERVER = "123";
 String IDS = "ESP 1";
-String PAS;
-String SSI;
+String PAS = "cisneros530";           //si ESTADOESP comienza en 3, toma estos datos para
+String SSI = "NxGroup";               //conectar a una red wifi
 long duration;
 float distanceCm;
 #define SOUND_SPEED 0.034
@@ -33,7 +42,8 @@ WiFiServer server(80);
 WebServer server2(80);
 WiFiClient net;
 
-
+void blink (void *pvParameters);
+void checkcon (void *pvParameters);
 void extraccion ();
 void setupsoftap();
 void softap ();
@@ -49,9 +59,13 @@ void handleestado();
 
 void setup() {
   Serial.begin(115200);
-  pinMode(26,OUTPUT); // LED2
-  pinMode(13,INPUT);  // ECHO
-  pinMode(12,OUTPUT); // pulse
+  pinMode(LED,OUTPUT);  // LED SMD (PIN 02)
+  pinMode(26,OUTPUT);   // LED externo
+  pinMode(13,INPUT);    // ECHO
+  pinMode(12,OUTPUT);   // pulse
+  xTaskCreatePinnedToCore(blink, "blink", 1024, NULL, 1, NULL, ARDUINO_RUNING_CORE);
+  xTaskCreatePinnedToCore(checkcon, "checkcon", 1024, NULL, 1, NULL, ARDUINO_RUNING_CORE);
+
 }
 
 void loop() {
@@ -81,13 +95,13 @@ void loop() {
   {
     Serial.println("-----------------CONECTO EN MODO STATION----------------");
     setupstationmode();  
-    ESTADOESP=4;  
+    
   }
   if (ESTADOESP==4)     //corro el esp en modo station
   {
     //Serial.println("-----------------MODO STATION FUNCIONANDO----------------");
     modostation();  
-    ESTADOESP=4;  
+    
   }
 }
 
@@ -209,6 +223,10 @@ void setupstationmode ()
   client.begin(ipse, 1883, net);
   client.onMessage(messageReceived);
   connect();
+  if (ESTADOESP == 0)
+  {
+    return;
+  }
   server2.on("/", handleRoot);
   server2.on("/readPOT", handlePOT);
   server2.on("/readname", handlename);
@@ -217,6 +235,7 @@ void setupstationmode ()
   Serial.println("HTTP server started");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
+  ESTADOESP=4;  
 }
 
 void connect() {
@@ -224,8 +243,15 @@ void connect() {
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     delay(1000);
+    if (ESTADOESP==0)
+    {
+      break;
+    }
   }
-
+  if (ESTADOESP == 0)
+  {
+    return;
+  }
   Serial.print("\nconnecting...");
   while (!client.connect("arduino")) { //, "public", "public")) {
     Serial.print(".");
@@ -310,4 +336,63 @@ void handleestado()
 {
  String estd= String(estado);   
  server2.send(200, "text/plane", estd);
+}
+
+void blink (void *pvParameters)   //PARPADEO FREERTOS
+{
+  while (1)
+  {
+    if (ESTADOESP == 0)
+    {
+      digitalWrite(LED, LOW);
+      vTaskDelay(T100);
+      digitalWrite(LED, HIGH);
+      vTaskDelay(T100);
+    }
+    if (ESTADOESP == 1)
+    {
+      digitalWrite(LED, LOW);
+      vTaskDelay(T100);
+      digitalWrite(LED, HIGH);
+      vTaskDelay(T100);
+    }
+    if (ESTADOESP == 2)
+    {
+      digitalWrite(LED, HIGH);
+    }
+    if (ESTADOESP == 3)
+    {
+      digitalWrite(LED, HIGH);
+    }
+    if (ESTADOESP == 4)
+    {
+      digitalWrite(LED, LOW);
+      vTaskDelay(xDelay);
+      digitalWrite(LED, HIGH);
+      vTaskDelay(xDelay);
+    }
+  }
+  
+}
+
+void checkcon (void *pvParameters)   //CHECKEO CONEXION FREERTOS
+{
+  int contador = 0;
+  while (1)
+  {
+    vTaskDelay(T1000);
+    Serial.println(String(ESTADOESP));
+    if (ESTADOESP == 3)
+    {      
+      contador++;
+      if (contador >= 25)
+      {
+        contador = 0;
+        ESTADOESP = 0;
+      }
+    }
+    
+    
+  }
+  
 }
